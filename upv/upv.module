@@ -1,0 +1,53 @@
+<?php
+
+/**
+ * @file : Display the profile visits of a logged-in user.
+ */
+
+/**
+ * Implements hook_menu()
+ */
+/* function upv_menu() {
+  $items = array();
+  $items['upv-list'] = array(
+    'title' => 'User Profile visits',
+	'description' => 'List of profile views of a user',
+	'page callback' => 'upv_list',
+	'access callback' => 'user_access',	
+  );
+  return $items;
+} */
+
+/**
+ * List of profile views of a user.
+ */
+/* function upv_list() {
+  $output = 'Hello';
+  return $output;
+} */
+
+/**
+ * Implements hook_user_view().
+ */
+function upv_user_view($account, $view_mode, $langcode) {
+  global $user;
+  //drupal_set_message($user->name);
+  //drupal_set_message("<pre>".print_r($account, 1)."</pre>");
+  if ($account->uid != $user->uid) {
+    $record['vuid'] = $account->uid;
+    $record['uid'] = $user->uid;
+    $record['remote_address'] = ip_address();
+    $record['viewed'] = time();
+    drupal_write_record('upv', $record);
+  }
+}
+
+function upv_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'upv') . '/includes/views',
+    //'template path' => drupal_get_path('module', 'example') . '/themes',
+  );
+}
+
+

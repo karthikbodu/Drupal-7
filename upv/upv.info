@@ -1,0 +1,3 @@
+name = User Profile Visits
+description = Display the profile visits of a logged-in user
+core = 7.x

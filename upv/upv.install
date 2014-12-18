@@ -1,0 +1,46 @@
+<?php
+
+/**
+ * @file
+ * Clone content mapping installation hooks.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function upv_schema() {
+  $schema['upv'] = array(
+    'description' => 'Stores the information of user profile views.',
+    'fields' => array(
+      'vuid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'User Id of the user who visited the other user profile.',
+      ),
+      'uid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'User Id of the user whose viewed the profile.',
+      ),
+	 'remote_address' => array(
+        'type' => 'varchar',
+		'length' => 128,
+        'not null' => FALSE,
+        'default' => NULL,
+        'description' => 'IP Address of the user who viewed the profile.',
+      ),
+	  'viewed' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Timestamp of the profile view.',
+      ),
+    ),
+  );
+  return $schema;
+}
+
