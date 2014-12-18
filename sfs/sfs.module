@@ -1,0 +1,215 @@
+<?php
+
+/**
+ * @file
+ * Sharing files with users securely.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function sfs_menu() {
+  $items = array();
+
+  $items['admin/config/sfs'] = array(
+    'title' => 'Secure File Share',
+    'description' => 'Sharing files securely with users',
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('administer site configuration'),
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+  );
+  $items['admin/config/sfs/settings'] = array(
+    'title' => 'Settings',
+    'description' => 'Secure File Share Settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('sfs_settings_form'),
+    'access arguments' => array('administer secure file share settings'),
+    'file' => 'sfs.admin.inc',
+	'weight' => -25,
+  );
+  $items['admin/config/sfs/dashboard'] = array(
+    'title' => 'Secure File Sharing',
+    'description' => 'Sharing files securely with users',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('sfs_form'),
+    'access arguments' => array('access secure file share'),
+	'file' => 'sfs.config.inc',
+  );
+  $items['admin/config/sfs/dashboard/upload'] = array(
+    'title' => 'Secure File Sharing.',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+	'weight' => -20,
+  );
+  
+  $items['admin/config/sfs/dashboard/shared-by'] = array(
+    'title' => 'List of File\'s shared by me.',
+    'description' => 'List of files shared by me.',
+    'page callback' => 'sfs_list_files_sharedby',
+    'access arguments' => array('access shared file\'s list'),
+    'file' => 'sfs.pages.inc',
+	'type' => MENU_LOCAL_TASK,
+	'weight' => -15,
+  );
+  $items['admin/config/sfs/dashboard/shared-to'] = array(
+    'title' => 'List of File\'s shared to me.',
+    'description' => 'List of File\'s shared to me.',
+    'page callback' => 'sfs_list_files_sharedto',
+    'access arguments' => array('access shared file\'s list'),
+    'file' => 'sfs.pages.inc',
+    'type' => MENU_LOCAL_TASK,
+	'weight' => -10,
+  );
+  $items['sfs/%sfs_gen_key/download'] = array(
+    'title' => 'Download Shared File\'s',
+    'description' => 'Downloading the shared files securely.',
+    'page callback' => 'sfs_download_files',
+    'page arguments' => array(1),
+    'access callback' => 'sfs_download_link_access',
+    'access arguments' => array(1),
+	'file' => 'sfs.download.inc',
+  );
+  $items['sfs/%sfs_gen_key/secure_download'] = array(
+    'title' => 'Download Shared File\'s',
+    'description' => 'Downloading the shared files securely.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('sfs_verify_password_form', 1),
+    'access callback' => 'sfs_download_link_access',
+    'access arguments' => array(1),
+	'file' => 'sfs.download.inc',
+  );
+  $items['sfs/%sfs_gen_key/delete'] = array(
+    'title' => 'Delete Shared File\'s',
+    'description' => 'Deleting the shared file\'s.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('sfs_file_delete_confirm', 1),
+    'access arguments' => array('delete shared file\'s'),
+	'file' => 'sfs.operations.inc',
+  );
+  $items['sfs/%sfs_gen_key/status'] = array(
+    'title' => 'Update Shared File\'s Status',
+    'description' => 'Updating the status of the shared file\'s.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('sfs_file_status_confirm', 1),
+    'access arguments' => array('update shared file\'s status'),
+	'file' => 'sfs.operations.inc',
+  );
+  $items['sfs/%sfs_gen_key/expiration'] = array(
+    'title' => 'Update Shared File\'s Expiration',
+    'description' => 'Updating the expiration of the shared file\'s.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('sfs_file_update_expiration_form', 1),
+    'access arguments' => array('update shared file\'s expiration'),
+	'file' => 'sfs.operations.inc',
+  );
+  $items['sfs/%sfs_gen_key/share'] = array(
+    'title' => 'Update Shared File\'s Users',
+    'description' => 'Updating the users of the shared file\'s.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('sfs_file_update_users_form', 1),
+    'access arguments' => array('update shared file\'s expiration'),
+	'file' => 'sfs.operations.inc',
+  );
+  $items['sfs/%sfs_gen_key/password'] = array(
+    'title' => 'Update Shared File\'s Password',
+    'description' => 'Updating the password of the shared file\'s.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('sfs_file_update_password_form', 1),
+    'access arguments' => array('update shared file\'s password'),
+	'file' => 'sfs.operations.inc',
+  );
+  $items['sfs/%sfs_gen_key/reset-password'] = array(
+    'title' => 'Reset Shared File\'s Password',
+    'description' => 'Resetting the password of the shared file\'s.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('sfs_file_reset_password_form', 1),
+    'access arguments' => array('reset shared file\'s password'),
+	'file' => 'sfs.operations.inc',
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function sfs_permission() {
+  return array(
+    'administer secure file share settings' => array(
+      'title' => t('Administer Secure File Share Settings'),
+    ),
+    'access secure file share' => array(
+      'title' => t('Access Secure File Share'),
+    ),
+    'access shared file\'s list' => array(
+      'title' => t('Access Secure File\'s List'),
+    ),
+    'download shared file\'s' => array(
+      'title' => t('Download shared File\'s'),
+    ),
+	'delete shared file\'s' => array(
+      'title' => t('Delete shared File\'s'),
+    ),
+	'update shared file\'s status' => array(
+      'title' => t('Update Shared File\'s Status'),
+    ),
+	'update shared file\'s expiration' => array(
+      'title' => t('Update Shared File\'s Expiration'),
+    ),
+	'update shared file\'s password' => array(
+      'title' => t('Update Shared File\'s Password'),
+    ),
+	'reset shared file\'s password' => array(
+      'title' => t('Reset Shared File\'s Password'),
+    ),
+  );
+}
+
+/**
+ * Check if the user can access the download url.
+ */
+function sfs_download_link_access($file) {
+  module_load_include('inc', 'sfs', 'sfs.common');
+  if (!user_access('download shared file\'s')) {
+    drupal_set_message(t('You don\'t have access to dowload the files. Please contact the administrator.'), 'error');
+    return FALSE;
+  }
+  if (!(_sfs_is_file_status_active($file->fid))) {
+    drupal_set_message(t('The file your are trying to access is not active. Please contact the administrator.'), 'error');
+    return FALSE;
+  }
+  if (!(_sfs_is_valid_internal_user($file->fid))) {
+    drupal_set_message(t('It seems the url you are trying to access is restricted. Please contact the administrator.'), 'error');
+    return FALSE;
+  }
+  
+  $current_time = time();
+  $expiration = _sfs_is_expiration_set($file->fid);
+  if ($expiration > 0 && ($current_time > $expiration)) {
+    drupal_set_message(t('The url your are trying to access is expired. Please contact the administrator.'), 'error');
+    return FALSE;
+  }
+  return TRUE;
+}
+
+/**
+ * Function to load the file record from the url parameter.
+ */
+function sfs_gen_key_load($key) {
+  $decoded_key = unserialize(base64_decode($key));
+  $file_attributes = $decoded_key;
+  return $file_attributes;
+}
+
+/**
+ * Implements hook_mail().
+ */
+function sfs_mail($key, &$message, $params) {
+  switch ($key) {
+    case 'notice':
+      $email_subject = variable_get('sfs_mail_subject', '');
+      $email_body = _sfs_replace_email_tokens(variable_get('sfs_mail_body', ''), $params);
+      $message['subject'] = $email_subject;
+      $message['body'][] = $email_body;
+      break;
+  }
+}

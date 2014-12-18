@@ -1,0 +1,134 @@
+<?php
+
+/**
+ * @file
+ * Secure File Share installation hooks.
+ */
+
+/**
+ * Implements hook_requirements().
+ */
+function sfs_requirements($phase) {
+  $requirements = array();
+  $t = get_t();
+  if ($phase == 'install') {
+     $plupload_lib = libraries_get_path('plupload');
+	 watchdog('plupload req', $plupload_lib);
+	 if (empty($plupload_lib)) {
+	   $requirements['plupload'] = array(
+		 'severity' => REQUIREMENT_ERROR,
+		 'description' => $t('Secure File Share module requires plupload library, which is missing. Please download the <a href="@url">library</a> and place the extracted folder into "sites/all/libraries/plupload".', array('@url' => 'https://github.com/moxiecode/plupload/archive/v1.5.8.zip')), 
+	   );
+	 }
+  }
+  return $requirements;
+}
+
+/**
+ * Implements hook_schema().
+ */
+function sfs_schema() {
+  $schema['sfs_files'] = array(
+    'description' => 'Stores the secure files information.',
+    'fields' => array(
+      'sfs_id' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Primary Key: Unique File ID.',
+      ),
+      'internal_users' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'List of internal user id\'s',
+      ),
+	  'external_users' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'List of external user email id\'s',
+      ),
+      'password' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Password set for secure file share',
+      ),
+      'expiration' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Timestamp for file expiration',
+      ),
+      'status' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => 'Status of the shared file active/inactive',
+      ),
+	  'visibility' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => 'Visibility of the shared file visible/hidden',
+      ),
+    ),
+	/* 'foreign keys' => array(
+      'file_managed' => array(
+        'table' => 'file_managed',
+        'columns' => array('fid' => 'fid'),
+      ),
+	), */
+    'unique keys' => array(
+      'sfs_id' => array('sfs_id'),
+    ),
+    'primary key' => array('sfs_id'),
+  );
+  $schema['sfs_upass'] = array(
+    'description' => 'Stores the secure files information.',
+    'fields' => array(
+      'fid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Primary Key: Unique File ID.',
+      ),
+      'uid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'User id of the user.',
+      ),
+      'password' => array(
+        'type' => 'varchar',
+        'length' => 128,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Password set for secure file share',
+      ),
+    ),
+    'primary key' => array('fid', 'uid'),
+  );
+  return $schema;
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function sfs_uninstall() {
+  variable_del('sfs_size');
+  variable_del('sfs_types');
+  variable_del('sfs_password_protection');
+  variable_del('sfs_expiration');
+  variable_del('sfs_mail_subject');
+  variable_del('sfs_mail_body');
+}

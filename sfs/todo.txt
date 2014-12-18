@@ -1,0 +1,22 @@
+Check if plupload library is installed and configured.
+
+Password Recovery
+
+Separate table to store user password
+
+sfs_upass
+
+fid, uid, password
+
+check if record exists in sfs_upass 
+
+else validate from sfs files table
+
+
+-------
+ISSUES:
+
+1) Remove secure_download and replace with download. Url is active.
+
+-----------------------
+Add "Change Password" operation

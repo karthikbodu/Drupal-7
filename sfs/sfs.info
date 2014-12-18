@@ -1,0 +1,10 @@
+name = Secure File Share
+description = Sharing files with users securely
+package = Others
+core = 7.x
+dependencies[] = plupload
+dependencies[] = libraries
+dependencies[] = chosen
+dependencies[] = date
+dependencies[] = date_popup
+configure = admin/config/sfs
